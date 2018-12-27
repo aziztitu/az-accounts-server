@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { usersController } from './users/usersController';
+import { accountsController } from './accounts/accountsController';
 import { authController } from './auth/authController';
 import jwt from 'jsonwebtoken';
 import serverConfig, { ServerMode } from '@/tools/serverConfig';
@@ -19,7 +19,7 @@ export const apiController: Router = Router();
 apiController.use(extractApiToken);
 
 apiController.use('/auth', authController);
-apiController.use('/users', authMiddlewares.allowOnlyWithToken, usersController);
+apiController.use('/accounts', authMiddlewares.allowOnlyWithToken, accountsController);
 
 /**
  * Extracts ApiToken from Authorization Header and puts the ApiTokenPayload on the request for further handlers to use.

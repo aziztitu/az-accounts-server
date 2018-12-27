@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { ApiResponseData } from '@/controllers/apiController';
-import { UserModel, User } from '@/models/user';
+import { AccountModel, Account } from '@/models/Account';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import serverConfig from '@/tools/serverConfig';
@@ -14,7 +14,7 @@ authController.post('/validateAPIToken', validateApiToken);
 authController.post('/logoutSession', logoutSession);
 
 /**
- * Validates user credentials, and sends back a JWT (JSON Web Token).
+ * Validates account credentials, and sends back a JWT (JSON Web Token).
  */
 function login(req: Request, res: Response) {
     let resData: ApiResponseData;
@@ -31,19 +31,19 @@ function login(req: Request, res: Response) {
         return;
     }
 
-    UserModel.findOne({ username: username })
+    AccountModel.findOne({ username: username })
         .select('username password role')
-        .exec((err, user) => {
+        .exec((err, account) => {
             if (err) {
                 resData = {
                     success: false,
-                    message: `Error retrieving the user`,
+                    message: `Error retrieving the account`,
                     errorReport: err,
                 };
 
                 res.json(resData);
             } else {
-                if (!user) {
+                if (!account) {
                     resData = {
                         success: false,
                         message: `Invalid Username`,
@@ -51,7 +51,7 @@ function login(req: Request, res: Response) {
 
                     res.json(resData);
                 } else {
-                    bcrypt.compare(password, user.password, (err, same) => {
+                    bcrypt.compare(password, account.password, (err, same) => {
                         if (err) {
                             resData = {
                                 success: false,
@@ -66,10 +66,10 @@ function login(req: Request, res: Response) {
                                 };
                             } else {
                                 const payload: ApiTokenPayload = {
-                                    userData: {
-                                        id: user.id,
-                                        username: user.username,
-                                        role: user.role,
+                                    accountData: {
+                                        id: account.id,
+                                        username: account.username,
+                                        role: account.role,
                                     },
                                 };
                                 const apiToken = jwt.sign(
@@ -109,16 +109,16 @@ function login(req: Request, res: Response) {
 }
 
 /**
- * Creates new user
+ * Creates new account
  */
 async function signup(req: Request, res: Response) {
     const { username, password, name } = req.body;
 
-    const resData: ApiResponseData = await UserModel.addNewUser({
+    const resData: ApiResponseData = await AccountModel.addNewAccount({
         username: username,
         password: password,
         name: name,
-    } as User);
+    } as Account);
 
     res.json(resData);
 }

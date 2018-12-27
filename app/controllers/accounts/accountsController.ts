@@ -1,30 +1,30 @@
 import { Router, Request, Response } from 'express';
-import { UserModel, User } from '@/models/user';
+import { AccountModel, Account } from '@/models/Account';
 import { ApiResponseData } from '@/controllers/apiController';
 import authMiddlewares from '@/middlewares/authMiddlewares';
 
-export const usersController: Router = Router();
+export const accountsController: Router = Router();
 
-usersController
+accountsController
     .route('/')
-    .get(authMiddlewares.allowOnlyAdmin, getAllUsers)
-    .post(addNewUser);
+    .get(authMiddlewares.allowOnlyAdmin, getAllAccounts)
+    .post(authMiddlewares.allowOnlyAdmin, addNewAccounts);
 
 /**
  * Method: GET
- * Retrieves a list of users
+ * Retrieves a list of accounts
  */
-function getAllUsers(req: Request, res: Response) {
+function getAllAccounts(req: Request, res: Response) {
     let resData: ApiResponseData;
 
-    UserModel.find()
+    AccountModel.find()
         .select('username name role')
         .sort({ _id: 1 })
-        .exec((err, users) => {
+        .exec((err, accounts) => {
             if (err) {
                 resData = {
                     success: false,
-                    message: `Error retrieving users`,
+                    message: `Error retrieving accounts`,
                     errorReport: err,
                 };
 
@@ -32,8 +32,8 @@ function getAllUsers(req: Request, res: Response) {
             } else {
                 resData = {
                     success: true,
-                    message: `Retrieved users successfully`,
-                    users: users,
+                    message: `Retrieved accounts successfully`,
+                    accounts: accounts,
                 };
             }
 
@@ -43,16 +43,16 @@ function getAllUsers(req: Request, res: Response) {
 
 /**
  * Method: POST
- * Creates a new user
+ * Creates a new account
  */
-async function addNewUser(req: Request, res: Response) {
+async function addNewAccounts(req: Request, res: Response) {
     const { username, password, name } = req.body;
 
-    const resData: ApiResponseData = await UserModel.addNewUser({
+    const resData: ApiResponseData = await AccountModel.addNewAccount({
         username: username,
         password: password,
         name: name,
-    } as User);
+    } as Account);
 
     res.json(resData);
 }

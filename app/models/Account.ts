@@ -4,7 +4,7 @@ import { MongooseDocument } from 'mongoose';
 import serverConfig from '@/tools/serverConfig';
 import { ApiResponseData } from '@/controllers/apiController';
 
-export enum UserRole {
+export enum AccountRole {
     ADMIN = 'admin',
     USER = 'user',
 }
@@ -12,17 +12,17 @@ export enum UserRole {
 export const ReservedUsernames = ['admin'];
 
 @pre('save', function(next) {
-    const user = this as MongooseDocument & User;
+    const account = this as MongooseDocument & Account;
 
-    if (user.isModified('password')) {
+    if (account.isModified('password')) {
         // console.log("Hashing password...");
 
-        bcrypt.hash(user.password, serverConfig.mongo.passwordHash.saltingRounds, (err, hash) => {
+        bcrypt.hash(account.password, serverConfig.mongo.passwordHash.saltingRounds, (err, hash) => {
             if (err) {
                 console.log('Error hashing password!');
                 next(err);
             } else {
-                user.password = hash;
+                account.password = hash;
                 next();
             }
         });
@@ -30,7 +30,7 @@ export const ReservedUsernames = ['admin'];
         next();
     }
 })
-export class User extends Typegoose {
+export class Account extends Typegoose {
     @prop({ required: true, unique: true })
     username!: string;
 
@@ -40,31 +40,31 @@ export class User extends Typegoose {
     @prop({ required: true })
     name!: string;
 
-    @prop({ required: true, enum: UserRole, default: UserRole.USER })
-    role!: UserRole;
+    @prop({ required: true, enum: AccountRole, default: AccountRole.USER })
+    role!: AccountRole;
 
     @staticMethod
-    static addAdminIfMissing(this: ModelType<User> & User) {
-        this.findOne({ role: UserRole.ADMIN }, (err, user) => {
+    static addAdminIfMissing(this: ModelType<Account> & Account) {
+        this.findOne({ role: AccountRole.ADMIN }, (err, account) => {
             if (err) {
-                console.log('Error retrieving admin user!\n');
+                console.log('Error retrieving admin account!\n');
             } else {
-                if (!user) {
-                    console.log('Admin user is missing...');
-                    console.log('Creating Admin User...');
+                if (!account) {
+                    console.log('Admin Account is missing...');
+                    console.log('Creating Admin Account...');
 
-                    const adminUserModel = new UserModel({
+                    const adminAccountModel = new AccountModel({
                         username: 'admin',
                         password: serverConfig.mongo.defaultAdminPassword,
                         name: 'Admin',
-                        role: UserRole.ADMIN,
-                    } as User);
+                        role: AccountRole.ADMIN,
+                    } as Account);
 
-                    adminUserModel.save(err => {
+                    adminAccountModel.save(err => {
                         if (err) {
-                            console.log('Error creating admin user!\n');
+                            console.log('Error creating admin account!\n');
                         } else {
-                            console.log('Admin user created successfully!\n');
+                            console.log('Admin account created successfully!\n');
                         }
                     });
                 }
@@ -73,17 +73,17 @@ export class User extends Typegoose {
     }
 
     @staticMethod
-    static addNewUser(this: ModelType<User> & User, userDoc: User) {
+    static addNewAccount(this: ModelType<Account> & Account, accountDoc: Account) {
         return new Promise<ApiResponseData>((resolve, reject) => {
             let resData: ApiResponseData;
 
-            const newUserModel = new UserModel(userDoc);
+            const newAccountModel = new AccountModel(accountDoc);
 
-            if (ReservedUsernames.indexOf(userDoc.username) != -1) {
+            if (ReservedUsernames.indexOf(accountDoc.username) != -1) {
                 resData = {
                     success: false,
                     message: `Username '${
-                        userDoc.username
+                        accountDoc.username
                     }' is reserved. Use a different username.`,
                 };
 
@@ -91,17 +91,17 @@ export class User extends Typegoose {
                 return;
             }
 
-            newUserModel.save(err => {
+            newAccountModel.save(err => {
                 if (err) {
                     resData = {
                         success: false,
-                        message: `Error creating the user!`,
+                        message: `Error creating the account!`,
                         errorReport: err,
                     };
                 } else {
                     resData = {
                         success: true,
-                        message: 'User created successfully',
+                        message: 'Account created successfully',
                     };
                 }
 
@@ -111,4 +111,4 @@ export class User extends Typegoose {
     }
 }
 
-export const UserModel = new User().getModelForClass(User);
+export const AccountModel = new Account().getModelForClass(Account);

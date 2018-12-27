@@ -1,7 +1,7 @@
 {
   "name": "az-accounts-server",
   "version": "1.0.0",
-  "description": "Central Auth Server for multiple applications",
+  "description": "Central Accounts Server for Multiple Applications",
   "main": "build/server.js",
   "_moduleAliases": {
     "@": "build"

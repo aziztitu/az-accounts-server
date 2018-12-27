@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiResponseData } from '../controllers/apiController';
-import { UserRole } from '../models/user';
+import { AccountRole } from '../models/Account';
 
 const authMiddlewares = {
     allowOnlyWithToken(req: Request, res: Response, next: NextFunction) {
@@ -16,7 +16,7 @@ const authMiddlewares = {
         }
     },
     allowOnlyAdmin(req: Request, res: Response, next: NextFunction) {
-        if (req.apiTokenPayload && req.apiTokenPayload.userData.role === UserRole.ADMIN) {
+        if (req.apiTokenPayload && req.apiTokenPayload.accountData.role === AccountRole.ADMIN) {
             next();
         } else {
             const resData: ApiResponseData = {

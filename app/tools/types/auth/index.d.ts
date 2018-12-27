@@ -11,7 +11,7 @@ declare global {
 }
 
 export type ApiTokenPayload = {
-    userData: {
+    accountData: {
         id: string;
         username: string;
         role: string;

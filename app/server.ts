@@ -11,7 +11,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import serverConfig, { ServerMode } from '@/tools/serverConfig';
-import { UserModel } from '@/models/user';
+import { AccountModel } from '@/models/Account';
 import { apiController } from '@/controllers/apiController';
 import session from 'express-session';
 
@@ -131,7 +131,7 @@ class Server {
         this.db.once('open', () => {
             helperUtils.log('Connected to the database successfully!\n', StringDecoration.SUCCESS);
 
-            UserModel.addAdminIfMissing();
+            AccountModel.addAdminIfMissing();
         });
     }
 }
