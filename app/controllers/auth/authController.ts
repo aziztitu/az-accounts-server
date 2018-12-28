@@ -5,11 +5,12 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import serverConfig from '@/tools/serverConfig';
 import { ApiTokenPayload } from '../../tools/types/auth/index';
+import { apiMiddlewares } from '../../middlewares/apiMiddlewares';
 
 export const authController = Router();
 
 authController.post('/login', login);
-authController.post('/signup', signup);
+authController.post('/signup', apiMiddlewares.disallowFeature, signup);
 authController.post('/validateAPIToken', validateApiToken);
 authController.post('/logoutSession', logoutSession);
 

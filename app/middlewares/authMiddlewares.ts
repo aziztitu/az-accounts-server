@@ -26,7 +26,7 @@ const authMiddlewares = {
 
             res.json(resData);
         }
-    },
+    }
 };
 
 export default authMiddlewares;

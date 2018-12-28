@@ -2,13 +2,15 @@ import { Router, Request, Response } from 'express';
 import { AccountModel, Account } from '@/models/Account';
 import { ApiResponseData } from '@/controllers/apiController';
 import authMiddlewares from '@/middlewares/authMiddlewares';
+import { providedAccountController } from './providedAccount/providedAccountController';
 
 export const accountsController: Router = Router();
 
-accountsController
-    .route('/')
-    .get(authMiddlewares.allowOnlyAdmin, getAllAccounts)
-    .post(authMiddlewares.allowOnlyAdmin, addNewAccounts);
+accountsController.get('/all', authMiddlewares.allowOnlyAdmin, getAllAccounts);
+accountsController.post('/new', authMiddlewares.allowOnlyAdmin, addNewAccount);
+
+accountsController.use('/:accountId', authMiddlewares.allowOnlyWithToken, providedAccountController);
+
 
 /**
  * Method: GET
@@ -45,7 +47,7 @@ function getAllAccounts(req: Request, res: Response) {
  * Method: POST
  * Creates a new account
  */
-async function addNewAccounts(req: Request, res: Response) {
+async function addNewAccount(req: Request, res: Response) {
     const { username, password, name } = req.body;
 
     const resData: ApiResponseData = await AccountModel.addNewAccount({

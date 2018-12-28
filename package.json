@@ -31,6 +31,7 @@
     "express": "^4.16.4",
     "express-session": "^1.15.6",
     "jsonwebtoken": "^8.4.0",
+    "lodash": "^4.17.11",
     "module-alias": "^2.1.0",
     "mongoose": "^5.3.16",
     "morgan": "^1.9.1",
@@ -39,19 +40,20 @@
     "typegoose": "^5.4.1"
   },
   "devDependencies": {
-    "@types/express": "^4.16.0",
     "@types/bcrypt": "^3.0.0",
     "@types/connect-mongodb-session": "0.0.0",
     "@types/cors": "^2.8.4",
     "@types/dotenv": "^6.1.0",
+    "@types/express": "^4.16.0",
     "@types/express-session": "^1.15.11",
     "@types/jsonwebtoken": "^8.3.0",
+    "@types/lodash": "^4.14.119",
     "@types/mongoose": "^5.3.5",
     "@types/morgan": "^1.7.35",
     "@types/on-finished": "^2.3.1",
     "cross-env": "^5.2.0",
-    "tsc-watch": "^1.0.31",
     "nodemon": "^1.18.8",
+    "tsc-watch": "^1.0.31",
     "typescript": "^3.2.2"
   }
 }

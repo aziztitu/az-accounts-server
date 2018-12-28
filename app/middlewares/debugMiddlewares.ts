@@ -32,7 +32,7 @@ export default {
             devUtils.log();
             devUtils.log('Response Body:', StringDecoration.HIGHLIGHT, StringDecoration.UNDERLINE);
             devUtils.log(
-                `${helperUtils.getPrettyJSON(JSON.parse(responseBody))}`,
+                `${helperUtils.getPrettyJSON(JSON.parse(responseBody || '{}'))}`,
                 StringDecoration.HIGHLIGHT
             );
             devUtils.log();

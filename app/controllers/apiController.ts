@@ -16,12 +16,27 @@ export type ApiResponseData = {
 
 export const apiController: Router = Router();
 
-apiController.use(extractApiToken);
+apiController.use(initRouteData, extractApiToken);
 
 apiController.use('/auth', authController);
 apiController.use('/accounts', authMiddlewares.allowOnlyWithToken, accountsController);
 
 /**
+ * (Middleware)
+ * Initializes the route data with the proper structure and dummy values
+ */
+function initRouteData(req: Request, res: Response, next: NextFunction) {
+    req.routeData = {
+        accounts: {
+            providedAccount: undefined,
+        },
+    };
+
+    next();
+}
+
+/**
+ * (Middleware)
  * Extracts ApiToken from Authorization Header and puts the ApiTokenPayload on the request for further handlers to use.
  */
 function extractApiToken(req: Request, res: Response, next: NextFunction) {
