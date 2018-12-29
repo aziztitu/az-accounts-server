@@ -4,7 +4,7 @@ export enum ServerMode {
     prod = 'prod',
 }
 
-export default {
+const serverConfig = {
     mode: process.env.MODE as ServerMode,
     get isDev() {
         return this.mode === ServerMode.dev;
@@ -15,6 +15,14 @@ export default {
         cors: {
             origin: process.env.CROSS_ORIGIN_DOMAINS!.split(' '),
         },
+        get fakeDelayTime() {
+            if (serverConfig.isDev) {
+                return +process.env.FAKE_DELAY_TIME!;
+            }
+
+            return 0;
+        },
+        fakeDelayOrigins: process.env.FAKE_DELAY_ORIGINS!.split(' '),
     },
 
     mongo: {
@@ -46,3 +54,5 @@ export default {
         },
     },
 };
+
+export default serverConfig;

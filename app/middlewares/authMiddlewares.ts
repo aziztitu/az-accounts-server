@@ -16,7 +16,7 @@ const authMiddlewares = {
         }
     },
     allowOnlyAdmin(req: Request, res: Response, next: NextFunction) {
-        if (req.apiTokenPayload && req.apiTokenPayload.accountData.role === AccountRole.ADMIN) {
+        if (req.apiTokenPayload && req.apiTokenPayload.accountData.role === AccountRole.Admin) {
             next();
         } else {
             const resData: ApiResponseData = {

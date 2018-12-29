@@ -64,6 +64,10 @@ class Server {
                     immediate: true,
                 })
             );
+
+            if (serverConfig.http.fakeDelayTime > 0) {
+                this.app.use(debugMiddlewares.fakeResponseDelay);
+            }
         }
 
         const sessionStore = new MongoDBStore(
@@ -71,7 +75,7 @@ class Server {
                 uri: serverConfig.mongo.uri,
                 collection: serverConfig.mongo.sessionCollection,
             },
-            err => {
+            (err) => {
                 if (err) {
                     helperUtils.error('Cannot initialize Session Store:');
                     helperUtils.error(JSON.stringify(err, null, 4));
@@ -79,7 +83,7 @@ class Server {
             }
         );
 
-        sessionStore.on('error', err => {
+        sessionStore.on('error', (err) => {
             if (err) {
                 helperUtils.error('Error in Session Store:');
                 helperUtils.error(JSON.stringify(err, null, 4));
@@ -117,11 +121,9 @@ class Server {
             {
                 useNewUrlParser: true,
             },
-            err => {
+            (err) => {
                 if (err) {
-                    helperUtils.error(
-                        'Error: Cannot connect to the database...'
-                    );
+                    helperUtils.error('Error: Cannot connect to the database...');
                     helperUtils.error(err.stack);
                 }
             }

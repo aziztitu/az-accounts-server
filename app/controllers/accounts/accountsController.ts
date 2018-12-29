@@ -1,16 +1,20 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { AccountModel, Account } from '@/models/Account';
 import { ApiResponseData } from '@/controllers/apiController';
 import authMiddlewares from '@/middlewares/authMiddlewares';
 import { providedAccountController } from './providedAccount/providedAccountController';
+import { AccountRole } from '../../models/Account';
 
 export const accountsController: Router = Router();
+
+accountsController.use(authMiddlewares.allowOnlyWithToken);
 
 accountsController.get('/all', authMiddlewares.allowOnlyAdmin, getAllAccounts);
 accountsController.post('/new', authMiddlewares.allowOnlyAdmin, addNewAccount);
 
-accountsController.use('/:accountId', authMiddlewares.allowOnlyWithToken, providedAccountController);
+accountsController.get('/roles', getAllRoles);
 
+accountsController.use('/:accountId', providedAccountController);
 
 /**
  * Method: GET
@@ -57,4 +61,20 @@ async function addNewAccount(req: Request, res: Response) {
     } as Account);
 
     res.json(resData);
+}
+
+function getAllRoles(req: Request, res: Response, next: NextFunction) {
+    const roles = [];
+    for (const roleId in AccountRole) {
+        roles.push({
+            name: roleId,
+            value: AccountRole[roleId],
+        });
+    }
+
+    res.json({
+        success: true,
+        message: 'Successfully retrieved the roles',
+        roles: roles,
+    } as ApiResponseData);
 }

@@ -5,8 +5,8 @@ import serverConfig from '@/tools/serverConfig';
 import { ApiResponseData } from '@/controllers/apiController';
 
 export enum AccountRole {
-    ADMIN = 'admin',
-    USER = 'user',
+    Admin = 'admin',
+    User = 'user',
 }
 
 export const ReservedUsernames = ['admin'];
@@ -40,12 +40,12 @@ export class Account extends Typegoose {
     @prop({ required: true })
     name!: string;
 
-    @prop({ required: true, enum: AccountRole, default: AccountRole.USER })
+    @prop({ required: true, enum: AccountRole, default: AccountRole.User })
     role!: AccountRole;
 
     @staticMethod
     static addAdminIfMissing(this: ModelType<Account> & Account) {
-        this.findOne({ role: AccountRole.ADMIN }, (err, account) => {
+        this.findOne({ role: AccountRole.Admin }, (err, account) => {
             if (err) {
                 console.log('Error retrieving admin account!\n');
             } else {
@@ -57,7 +57,7 @@ export class Account extends Typegoose {
                         username: 'admin',
                         password: serverConfig.mongo.defaultAdminPassword,
                         name: 'Admin',
-                        role: AccountRole.ADMIN,
+                        role: AccountRole.Admin,
                     } as Account);
 
                     adminAccountModel.save(err => {

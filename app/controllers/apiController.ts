@@ -19,7 +19,7 @@ export const apiController: Router = Router();
 apiController.use(initRouteData, extractApiToken);
 
 apiController.use('/auth', authController);
-apiController.use('/accounts', authMiddlewares.allowOnlyWithToken, accountsController);
+apiController.use('/accounts', accountsController);
 
 /**
  * (Middleware)

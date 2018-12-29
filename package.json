@@ -37,7 +37,8 @@
     "morgan": "^1.9.1",
     "on-finished": "^2.3.0",
     "reflect-metadata": "^0.1.12",
-    "typegoose": "^5.4.1"
+    "typegoose": "^5.4.1",
+    "wait-for-stuff": "^1.4.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",

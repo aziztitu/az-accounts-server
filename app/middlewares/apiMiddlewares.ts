@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
-import { ApiResponseData } from "@/controllers/apiController";
+import { Request, Response, NextFunction } from 'express';
+import { ApiResponseData } from '@/controllers/apiController';
 
 export const apiMiddlewares = {
     disallowFeature(req: Request, res: Response, next: NextFunction) {
