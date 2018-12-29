@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { ApiResponseData } from '../../apiController';
-import { AccountModel, Account } from '../../../models/Account';
+import { AccountModel, Account, AccountRole, ReservedUsernames } from '../../../models/Account';
 import Lodash from 'lodash';
 
 export const providedAccountController = Router({ mergeParams: true });
@@ -8,6 +8,7 @@ export const providedAccountController = Router({ mergeParams: true });
 providedAccountController.use(validateProvidedAccount);
 
 providedAccountController.get('/info/basic', getBasicInfo);
+providedAccountController.put('/info', allowOnlySelfOrAdmin, updateAccountInfo);
 
 /**
  * (Middleware)
@@ -44,6 +45,21 @@ function validateProvidedAccount(req: Request, res: Response, next: NextFunction
     });
 }
 
+function allowOnlySelfOrAdmin(req: Request, res: Response, next: NextFunction) {
+    if (
+        req.apiTokenPayload!.accountData.id === req.routeData.accounts.providedAccount!.id ||
+        req.apiTokenPayload!.accountData.role === AccountRole.Admin
+    ) {
+        next();
+        return;
+    }
+
+    res.json({
+        success: false,
+        message: `You don't have the permission to perform this action`,
+    } as ApiResponseData);
+}
+
 /**
  * Retrieves the basic information about the provided account.
  */
@@ -58,6 +74,53 @@ function getBasicInfo(req: Request, res: Response, next: NextFunction) {
             'role',
         ]),
     } as ApiResponseData;
+
+    res.json(apiResponseData);
+}
+
+async function updateAccountInfo(req: Request, res: Response, next: NextFunction) {
+    let apiResponseData: ApiResponseData = {
+        success: false,
+        message: 'Unknown Error',
+    };
+
+    const { username, name } = req.body;
+
+    if (username && name) {
+        const isUsernameReserved = ReservedUsernames.some((reservedUsername) => {
+            return reservedUsername === username;
+        });
+
+        if (isUsernameReserved) {
+            apiResponseData = {
+                success: false,
+                message: 'This username is reserved. Try a different username',
+            };
+        } else {
+            const providedAccount = req.routeData.accounts.providedAccount!;
+            providedAccount.username = username;
+            providedAccount.name = name;
+
+            try {
+                await providedAccount.save();
+                apiResponseData = {
+                    success: true,
+                    message: 'Account info updated successfully',
+                };
+            } catch (err) {
+                apiResponseData = {
+                    success: false,
+                    message: 'Error updating account info',
+                    errorReport: err,
+                };
+            }
+        }
+    } else {
+        apiResponseData = {
+            success: false,
+            message: 'Please provide all required data.',
+        };
+    }
 
     res.json(apiResponseData);
 }
