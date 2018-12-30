@@ -9,7 +9,9 @@ export enum AccountRole {
     User = 'user',
 }
 
-export const ReservedUsernames = ['admin'];
+export enum ReservedUsername {
+    Admin = 'admin',
+}
 
 @pre('save', function(next) {
     const account = this as MongooseDocument & Account;
@@ -17,15 +19,19 @@ export const ReservedUsernames = ['admin'];
     if (account.isModified('password')) {
         // console.log("Hashing password...");
 
-        bcrypt.hash(account.password, serverConfig.mongo.passwordHash.saltingRounds, (err, hash) => {
-            if (err) {
-                console.log('Error hashing password!');
-                next(err);
-            } else {
-                account.password = hash;
-                next();
+        bcrypt.hash(
+            account.password,
+            serverConfig.mongo.passwordHash.saltingRounds,
+            (err, hash) => {
+                if (err) {
+                    console.log('Error hashing password!');
+                    next(err);
+                } else {
+                    account.password = hash;
+                    next();
+                }
             }
-        });
+        );
     } else {
         next();
     }
@@ -60,7 +66,7 @@ export class Account extends Typegoose {
                         role: AccountRole.Admin,
                     } as Account);
 
-                    adminAccountModel.save(err => {
+                    adminAccountModel.save((err) => {
                         if (err) {
                             console.log('Error creating admin account!\n');
                         } else {
@@ -79,19 +85,21 @@ export class Account extends Typegoose {
 
             const newAccountModel = new AccountModel(accountDoc);
 
-            if (ReservedUsernames.indexOf(accountDoc.username) != -1) {
-                resData = {
-                    success: false,
-                    message: `Username '${
-                        accountDoc.username
-                    }' is reserved. Use a different username.`,
-                };
+            for (const reservedUsernameId in ReservedUsername) {
+                if (accountDoc.username === ReservedUsername[reservedUsernameId]) {
+                    resData = {
+                        success: false,
+                        message: `Username '${
+                            accountDoc.username
+                        }' is reserved. Use a different username.`,
+                    };
 
-                resolve(resData);
-                return;
+                    resolve(resData);
+                    return;
+                }
             }
 
-            newAccountModel.save(err => {
+            newAccountModel.save((err) => {
                 if (err) {
                     resData = {
                         success: false,

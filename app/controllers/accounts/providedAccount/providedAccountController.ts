@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { ApiResponseData } from '../../apiController';
-import { AccountModel, Account, AccountRole, ReservedUsernames } from '../../../models/Account';
+import { AccountModel, Account, AccountRole, ReservedUsername } from '../../../models/Account';
 import Lodash from 'lodash';
 
 export const providedAccountController = Router({ mergeParams: true });
@@ -87,17 +87,31 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
     const { username, name } = req.body;
 
     if (username && name) {
-        const isUsernameReserved = ReservedUsernames.some((reservedUsername) => {
-            return reservedUsername === username;
-        });
+        const providedAccount = req.routeData.accounts.providedAccount!;
 
-        if (isUsernameReserved) {
+        let isUsernameAllowed = true;
+
+        for (const reservedUsernameId in ReservedUsername) {
+            if (username === ReservedUsername[reservedUsernameId]) {
+                switch (username) {
+                    case ReservedUsername.Admin:
+                        if (providedAccount.role === AccountRole.Admin) {
+                            continue;
+                        }
+                        break;
+                }
+
+                isUsernameAllowed = false;
+                break;
+            }
+        }
+
+        if (!isUsernameAllowed) {
             apiResponseData = {
                 success: false,
                 message: 'This username is reserved. Try a different username',
             };
         } else {
-            const providedAccount = req.routeData.accounts.providedAccount!;
             providedAccount.username = username;
             providedAccount.name = name;
 
