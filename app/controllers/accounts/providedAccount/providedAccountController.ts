@@ -84,11 +84,12 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
         message: 'Unknown Error',
     };
 
-    const { username, name } = req.body;
+    const loggedInAccountData = req.apiTokenPayload!.accountData;
+    const providedAccount = req.routeData.accounts.providedAccount!;
 
-    if (username && name) {
-        const providedAccount = req.routeData.accounts.providedAccount!;
+    const { username, name, role } = req.body;
 
+    if (username && username !== providedAccount.username) {
         let isUsernameAllowed = true;
 
         for (const reservedUsernameId in ReservedUsername) {
@@ -111,28 +112,54 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
                 success: false,
                 message: 'This username is reserved. Try a different username',
             };
-        } else {
-            providedAccount.username = username;
-            providedAccount.name = name;
+            res.json(apiResponseData);
+            return;
+        }
 
-            try {
-                await providedAccount.save();
-                apiResponseData = {
-                    success: true,
-                    message: 'Account info updated successfully',
-                };
-            } catch (err) {
+        providedAccount.username = username;
+    }
+
+    if (name && name !== providedAccount.name) {
+        providedAccount.name = name;
+    }
+
+    if (role && role !== providedAccount.role) {
+        if (loggedInAccountData.role !== AccountRole.Admin) {
+            apiResponseData = {
+                success: false,
+                message: `You are not authorized to modify this user's role. Contact Admin for more info.`,
+            };
+            res.json(apiResponseData);
+            return;
+        }
+
+        if (providedAccount.role === AccountRole.Admin) {
+            let adminCount = await AccountModel.count({ role: AccountRole.Admin }).exec();
+
+            if (adminCount <= 1) {
                 apiResponseData = {
                     success: false,
-                    message: 'Error updating account info',
-                    errorReport: err,
+                    message: `You are the only admin. Hence you cannot change your role.`,
                 };
+                res.json(apiResponseData);
+                return;
             }
         }
-    } else {
+
+        providedAccount.role = role;
+    }
+
+    try {
+        await providedAccount.save();
+        apiResponseData = {
+            success: true,
+            message: 'Account info updated successfully',
+        };
+    } catch (err) {
         apiResponseData = {
             success: false,
-            message: 'Please provide all required data.',
+            message: 'Error updating account info',
+            errorReport: err,
         };
     }
 
