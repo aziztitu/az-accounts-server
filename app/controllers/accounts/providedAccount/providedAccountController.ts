@@ -90,7 +90,7 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
     const loggedInAccountData = req.apiTokenPayload!.accountData;
     const providedAccount = req.routeData.accounts.providedAccount!;
 
-    let { username, name, role } = req.body;
+    let { username, name, role, password } = req.body;
 
     if (username && username !== providedAccount.username) {
         username = username.trim();
@@ -164,7 +164,7 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
             if (adminCount <= 1) {
                 apiResponseData = {
                     success: false,
-                    message: `You are the only admin. Hence you cannot change your role.`,
+                    message: `This is the only admin account. Hence you cannot change the role for this account.`,
                 };
                 res.json(apiResponseData);
                 return;
@@ -172,6 +172,32 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
         }
 
         providedAccount.role = role;
+    }
+
+    if (password) {
+        password = password.trim();
+        if (password !== '') {
+            if (loggedInAccountData.role !== AccountRole.Admin) {
+                apiResponseData = {
+                    success: false,
+                    message: `You don't have the permission to change password for this user.`,
+                };
+                res.json(apiResponseData);
+                return;
+            }
+
+            if (loggedInAccountData.id === providedAccount.id) {
+                apiResponseData = {
+                    success: false,
+                    message: `You cannot force update your own password. Please change your password through 'My Account'`,
+                };
+                res.json(apiResponseData);
+                return;
+            }
+
+            providedAccount.password = password;
+        }
+        // If the password is empty, we ignore it (caz it means, no new password was force updated).
     }
 
     try {
