@@ -127,19 +127,20 @@ async function signup(req: Request, res: Response) {
 /**
  * Validates the API Token in the current request.
  */
-function validateApiToken(req: Request, res: Response) {
-    let resData: ApiResponseData;
+async function validateApiToken(req: Request, res: Response) {
+    let resData = {
+        success: false,
+        message: 'Your API Token is invalid',
+    };
 
     if (req.apiTokenPayload) {
-        resData = {
-            success: true,
-            message: 'Your API Token is valid',
-        };
-    } else {
-        resData = {
-            success: false,
-            message: 'Your API Token is invalid',
-        };
+        const account = await AccountModel.findById(req.apiTokenPayload.accountData.id).exec();
+        if (account) {
+            resData = {
+                success: true,
+                message: 'Your API Token is valid',
+            };
+        }
     }
 
     res.json(resData);
