@@ -79,7 +79,7 @@ function extractApiToken(req: Request, res: Response, next: NextFunction) {
             serverConfig.auth.jwt.options,
             (err, decodedPayload) => {
                 if (err) {
-                    console.log(`Error during ApiToken Verification: ${err.stack}`);
+                    helperUtils.log(`Error during ApiToken Verification: ${err.stack}`);
                 } else {
                     devUtils.log('Decoded API Token Payload:', StringDecoration.UNDERLINE);
                     devUtils.log(`${JSON.stringify(decodedPayload, null, 4)}\n`);

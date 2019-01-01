@@ -50,32 +50,38 @@ export class Account extends Typegoose {
     role!: AccountRole;
 
     @staticMethod
-    static addAdminIfMissing(this: ModelType<Account> & Account) {
-        this.findOne({ role: AccountRole.Admin }, (err, account) => {
-            if (err) {
-                console.log('Error retrieving admin account!\n');
-            } else {
-                if (!account) {
-                    console.log('Admin Account is missing...');
-                    console.log('Creating Admin Account...');
+    static async addAdminIfMissing(this: ModelType<Account> & Account) {
+        try {
+            const account = await this.findOne({ role: AccountRole.Admin }).exec();
+            if (!account) {
+                console.log('Admin Account is missing...');
+                console.log('Creating Admin Account...');
 
-                    const adminAccountModel = new AccountModel({
-                        username: 'admin',
-                        password: serverConfig.mongo.defaultAdminPassword,
-                        name: 'Admin',
-                        role: AccountRole.Admin,
-                    } as Account);
+                const adminAccountModel = new AccountModel({
+                    username: 'admin',
+                    password: serverConfig.mongo.defaultAdminPassword,
+                    name: 'Admin',
+                    role: AccountRole.Admin,
+                } as Account);
 
-                    adminAccountModel.save((err) => {
-                        if (err) {
-                            console.log('Error creating admin account!\n');
-                        } else {
-                            console.log('Admin account created successfully!\n');
-                        }
-                    });
+                try {
+                    await adminAccountModel.save();
+                    console.log('Admin Account created successfully!\n');
+                } catch (err) {
+                    if (err) {
+                        console.log('Error saving admin account!\n');
+                        return false;
+                    }
                 }
             }
-        });
+        } catch (err) {
+            if (err) {
+                console.log('Error retrieving admin account!\n');
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @staticMethod

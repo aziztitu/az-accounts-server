@@ -14,12 +14,13 @@ import serverConfig, { ServerMode } from '@/tools/serverConfig';
 import { AccountModel } from '@/models/Account';
 import { apiController } from '@/controllers/apiController';
 import session from 'express-session';
-
-import connectMongoDbSession from 'connect-mongodb-session';
+// import connectMongoDbSession from 'connect-mongodb-session';
 import { devUtils } from './tools/utils/devUtils';
 import debugMiddlewares from './middlewares/debugMiddlewares';
 import { StringDecoration, helperUtils } from './tools/utils/helperUtils';
-const MongoDBStore = connectMongoDbSession(session);
+
+const connectMongo = require('connect-mongo');
+const MongoDBStore = connectMongo(session);
 
 class Server {
     readonly app: express.Application = express();
@@ -28,7 +29,7 @@ class Server {
 
     public constructor() {}
 
-    public init() {
+    public async init() {
         helperUtils.log();
         helperUtils.log('Initializing Server...');
 
@@ -42,8 +43,8 @@ class Server {
 
         helperUtils.log();
 
+        await this.initDatabaseConnection();
         this.initExpressServer();
-        this.initDatabaseConnection();
     }
 
     private initExpressServer() {
@@ -70,31 +71,24 @@ class Server {
             }
         }
 
-        const sessionStore = new MongoDBStore(
-            {
-                uri: serverConfig.mongo.uri,
-                collection: serverConfig.mongo.sessionCollection,
-            },
-            (err) => {
-                if (err) {
-                    helperUtils.error('Cannot initialize Session Store:');
-                    helperUtils.error(JSON.stringify(err, null, 4));
-                }
-            }
-        );
+        const sessionStore = new MongoDBStore({
+            url: serverConfig.mongo.uri,
+            collection: serverConfig.mongo.sessionCollection,
+            mongooseConnection: this.db,
+        });
 
-        sessionStore.on('error', (err) => {
+        /* sessionStore.on('error', (err: any) => {
             if (err) {
                 helperUtils.error('Error in Session Store:');
                 helperUtils.error(JSON.stringify(err, null, 4));
             }
-        });
+        }); */
 
         this.app.use(
             session({
                 secret: serverConfig.auth.session.secret,
                 store: sessionStore,
-                resave: true,
+                resave: false,
                 saveUninitialized: true,
             })
         );
@@ -113,28 +107,26 @@ class Server {
         });
     }
 
-    private initDatabaseConnection() {
+    private async initDatabaseConnection() {
         helperUtils.log('Initializing connection to database...\n');
-
-        mongoose.connect(
-            serverConfig.mongo.uri,
-            {
-                useNewUrlParser: true,
-            },
-            (err) => {
-                if (err) {
-                    helperUtils.error('Error: Cannot connect to the database...');
-                    helperUtils.error(err.stack);
+        try {
+            await mongoose.connect(
+                serverConfig.mongo.uri,
+                {
+                    useNewUrlParser: true,
                 }
-            }
-        );
+            );
 
-        this.db = mongoose.connection;
-        this.db.once('open', () => {
+            this.db = mongoose.connection;
             helperUtils.log('Connected to the database successfully!\n', StringDecoration.SUCCESS);
 
-            AccountModel.addAdminIfMissing();
-        });
+            await AccountModel.addAdminIfMissing();
+        } catch (err) {
+            if (err) {
+                helperUtils.error('Error: Cannot connect to the database...');
+                helperUtils.error(err.stack);
+            }
+        }
     }
 }
 
