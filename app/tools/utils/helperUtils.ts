@@ -54,4 +54,14 @@ export const helperUtils = {
 
         return decoratedMessage;
     },
+
+    enumContains(enumObject: any, val: any) {
+        for (const valId in enumObject) {
+            if (val === enumObject[valId]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 };

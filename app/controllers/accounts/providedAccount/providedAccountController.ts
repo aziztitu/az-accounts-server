@@ -2,6 +2,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { ApiResponseData } from '../../apiController';
 import { AccountModel, Account, AccountRole, ReservedUsername } from '../../../models/Account';
 import Lodash from 'lodash';
+import { helperUtils } from '../../../tools/utils/helperUtils';
+import bcrypt from 'bcrypt';
 
 export const providedAccountController = Router({ mergeParams: true });
 
@@ -9,6 +11,7 @@ providedAccountController.use(validateProvidedAccount);
 
 providedAccountController.get('/info/basic', getBasicInfo);
 providedAccountController.put('/info', allowOnlySelfOrAdmin, updateAccountInfo);
+providedAccountController.put('/password', allowOnlySelfOrAdmin, updatePassword);
 
 /**
  * (Middleware)
@@ -87,9 +90,11 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
     const loggedInAccountData = req.apiTokenPayload!.accountData;
     const providedAccount = req.routeData.accounts.providedAccount!;
 
-    const { username, name, role } = req.body;
+    let { username, name, role } = req.body;
 
     if (username && username !== providedAccount.username) {
+        username = username.trim();
+
         let isUsernameAllowed = true;
 
         for (const reservedUsernameId in ReservedUsername) {
@@ -120,10 +125,30 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
     }
 
     if (name && name !== providedAccount.name) {
+        name = name.trim();
+
+        if (name === '') {
+            apiResponseData = {
+                success: false,
+                message: 'Name is empty',
+            };
+            res.json(apiResponseData);
+            return;
+        }
+
         providedAccount.name = name;
     }
 
     if (role && role !== providedAccount.role) {
+        if (!helperUtils.enumContains(AccountRole, role)) {
+            apiResponseData = {
+                success: false,
+                message: `Invalid role provided.`,
+            };
+            res.json(apiResponseData);
+            return;
+        }
+
         if (loggedInAccountData.role !== AccountRole.Admin) {
             apiResponseData = {
                 success: false,
@@ -159,6 +184,73 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
         apiResponseData = {
             success: false,
             message: 'Error updating account info',
+            errorReport: err,
+        };
+    }
+
+    res.json(apiResponseData);
+}
+
+async function updatePassword(req: Request, res: Response, next: NextFunction) {
+    let apiResponseData: ApiResponseData = {
+        success: false,
+        message: 'Unknown Error',
+    };
+
+    const loggedInAccountData = req.apiTokenPayload!.accountData;
+    const providedAccount = req.routeData.accounts.providedAccount!;
+
+    let { curPassword, newPassword } = req.body;
+
+    if (!curPassword || !newPassword) {
+        apiResponseData = {
+            success: false,
+            message: 'Password not provided',
+        };
+        res.json(apiResponseData);
+        return;
+    }
+
+    newPassword = newPassword.trim();
+    if (newPassword === '') {
+        apiResponseData = {
+            success: false,
+            message: 'Password is empty',
+        };
+        res.json(apiResponseData);
+        return;
+    }
+
+    try {
+        const match = await bcrypt.compare(curPassword, providedAccount.password);
+        if (match) {
+            providedAccount.password = newPassword;
+
+            try {
+                await providedAccount.save();
+                apiResponseData = {
+                    success: true,
+                    message: 'Password updated successfully',
+                };
+            } catch (err) {
+                if (err) {
+                    apiResponseData = {
+                        success: false,
+                        message: 'Could not update the password',
+                        errorReport: err,
+                    };
+                }
+            }
+        } else {
+            apiResponseData = {
+                success: false,
+                message: 'Incorrect current password',
+            };
+        }
+    } catch (err) {
+        apiResponseData = {
+            success: false,
+            message: 'Error validating current password',
             errorReport: err,
         };
     }

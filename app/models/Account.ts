@@ -10,6 +10,7 @@ export enum AccountRole {
 }
 
 export enum ReservedUsername {
+    Empty = '',
     Admin = 'admin',
 }
 
