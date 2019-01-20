@@ -50,6 +50,11 @@ export class Account extends Typegoose {
     @prop({ required: true, enum: AccountRole, default: AccountRole.User })
     role!: AccountRole;
 
+    @prop({
+        required: true
+    })
+    email!: string;
+
     @staticMethod
     static async addAdminIfMissing(this: ModelType<Account> & Account) {
         try {

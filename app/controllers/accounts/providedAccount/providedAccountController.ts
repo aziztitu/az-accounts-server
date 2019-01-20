@@ -74,6 +74,7 @@ function getBasicInfo(req: Request, res: Response, next: NextFunction) {
             'id',
             'username',
             'name',
+            'email',
             'role',
         ]),
     } as ApiResponseData;
@@ -90,7 +91,7 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
     const loggedInAccountData = req.apiTokenPayload!.accountData;
     const providedAccount = req.routeData.accounts.providedAccount!;
 
-    let { username, name, role, password } = req.body;
+    let { username, name, email, role, password } = req.body;
 
     if (username && username !== providedAccount.username) {
         username = username.trim();
@@ -137,6 +138,11 @@ async function updateAccountInfo(req: Request, res: Response, next: NextFunction
         }
 
         providedAccount.name = name;
+    }
+
+    if (email && email !== providedAccount.email) {
+        email = email.trim();
+        providedAccount.email = email;
     }
 
     if (role && role !== providedAccount.role) {

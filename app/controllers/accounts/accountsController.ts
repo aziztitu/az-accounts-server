@@ -52,12 +52,13 @@ function getAllAccounts(req: Request, res: Response) {
  * Creates a new account
  */
 async function addNewAccount(req: Request, res: Response) {
-    const { username, password, name } = req.body;
+    const { username, password, name, email } = req.body;
 
     const resData: ApiResponseData = await AccountModel.addNewAccount({
         username: username,
         password: password,
         name: name,
+        email: email,
     } as Account);
 
     res.json(resData);

@@ -113,12 +113,13 @@ function login(req: Request, res: Response) {
  * Creates new account
  */
 async function signup(req: Request, res: Response) {
-    const { username, password, name } = req.body;
+    const { username, password, name, email } = req.body;
 
     const resData: ApiResponseData = await AccountModel.addNewAccount({
         username: username,
         password: password,
         name: name,
+        email: email,
     } as Account);
 
     res.json(resData);

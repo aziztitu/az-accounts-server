@@ -22,7 +22,6 @@
   "author": "Azee",
   "license": "MIT",
   "dependencies": {
-    "@types/mongoose": "^5.3.5",
     "bcrypt": "3.0.2",
     "body-parser": "^1.18.3",
     "colors": "^1.3.3",
@@ -42,6 +41,7 @@
     "wait-for-stuff": "^1.4.0"
   },
   "devDependencies": {
+    "@types/mongoose": "^5.3.5",
     "@types/bcrypt": "^3.0.0",
     "@types/cors": "^2.8.4",
     "@types/dotenv": "^6.1.0",
