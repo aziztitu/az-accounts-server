@@ -7,6 +7,7 @@ import { ApiTokenPayload } from '../tools/types/auth/index';
 import authMiddlewares from '@/middlewares/authMiddlewares';
 import { devUtils } from '@/tools/utils/devUtils';
 import { helperUtils, StringDecoration } from '@/tools/utils/helperUtils';
+import { apiMiddlewares } from '@/middlewares/apiMiddlewares';
 
 export type ApiResponseData = {
     success: boolean;
@@ -16,6 +17,7 @@ export type ApiResponseData = {
 
 export const apiController: Router = Router();
 
+apiController.use(apiMiddlewares.multipartPreprocessor);
 apiController.use(initRouteData, extractApiToken);
 
 apiController.use('/auth', authController);

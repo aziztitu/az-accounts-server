@@ -18,6 +18,8 @@ import session from 'express-session';
 import { devUtils } from './tools/utils/devUtils';
 import debugMiddlewares from './middlewares/debugMiddlewares';
 import { StringDecoration, helperUtils } from './tools/utils/helperUtils';
+import multer from 'multer';
+
 
 const connectMongo = require('connect-mongo');
 const MongoDBStore = connectMongo(session);
@@ -49,6 +51,7 @@ class Server {
 
     private initExpressServer() {
         this.app.use(bodyParser.json());
+        this.app.use(multer().any());
         this.app.use(
             cors({
                 origin: serverConfig.http.cors.origin,
@@ -93,6 +96,7 @@ class Server {
             })
         );
 
+        this.app.use('/static', express.static('static'));
         this.app.use('/', apiController);
 
         this.app.listen(serverConfig.http.port, () => {

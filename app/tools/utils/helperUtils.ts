@@ -1,4 +1,7 @@
 import colors from 'colors/safe';
+import { devUtils } from '@/tools/utils/devUtils';
+import fs from 'fs';
+import path from 'path';
 
 export enum StringDecoration {
     HIGHLIGHT = 'yellow',
@@ -63,5 +66,26 @@ export const helperUtils = {
         }
 
         return false;
-    }
+    },
+
+    getPathSafe(givenPath: string, isDir = false) {
+        let dirPath = givenPath;
+        if (!isDir) {
+            dirPath = path.join(dirPath, '../');
+        }
+
+        devUtils.log(`Dir Path: ${dirPath}`);
+
+        if (!fs.existsSync(dirPath)) {
+            devUtils.log(`Making Directory: ${dirPath}`);
+            fs.mkdirSync(dirPath, { recursive: true });
+        }
+
+        let safePath = givenPath;
+        if (fs.existsSync(safePath)) {
+            safePath = fs.realpathSync(givenPath);
+        }
+
+        return safePath;
+    },
 };
