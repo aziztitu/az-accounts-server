@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt';
 import { MongooseDocument } from 'mongoose';
 import serverConfig from '@/tools/serverConfig';
 import { ApiResponseData } from '@/controllers/apiController';
+import { helperUtils } from '@/tools/utils/helperUtils';
+import fs from 'fs';
 
 export enum AccountRole {
     Admin = 'admin',
@@ -51,9 +53,12 @@ export class Account extends Typegoose {
     role!: AccountRole;
 
     @prop({
-        required: true
+        required: true,
     })
     email!: string;
+
+    @prop()
+    profilePicture!: string;
 
     @staticMethod
     static async addAdminIfMissing(this: ModelType<Account> & Account) {
@@ -91,7 +96,11 @@ export class Account extends Typegoose {
     }
 
     @staticMethod
-    static addNewAccount(this: ModelType<Account> & Account, accountDoc: Account) {
+    static addNewAccount(
+        this: ModelType<Account> & Account,
+        accountDoc: Account,
+        profilePictureBuffer?: Buffer
+    ) {
         return new Promise<ApiResponseData>((resolve, reject) => {
             let resData: ApiResponseData;
 
@@ -119,6 +128,18 @@ export class Account extends Typegoose {
                         errorReport: err,
                     };
                 } else {
+                    if (profilePictureBuffer) {
+                        let imageFilePath = helperUtils.getPathSafe(
+                            `${serverConfig.paths.images}/accounts/${newAccountModel._id}/profilePicture`,
+                            false
+                        );
+                        console.log(imageFilePath);
+
+                        let stream = fs.createWriteStream(imageFilePath);
+                        stream.write(profilePictureBuffer);
+                        stream.end();
+                    }
+
                     resData = {
                         success: true,
                         message: 'Account created successfully',

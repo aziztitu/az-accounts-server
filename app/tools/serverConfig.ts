@@ -1,4 +1,6 @@
 import jwt from 'jsonwebtoken';
+import { helperUtils } from '@/tools/utils/helperUtils';
+import path from 'path';
 export enum ServerMode {
     dev = 'dev',
     prod = 'prod',
@@ -51,6 +53,22 @@ const serverConfig = {
                 expiresIn: '1d',
                 issuer: process.env.JWT_ISSUER,
             } as jwt.SignOptions,
+        },
+    },
+
+    paths: {
+        get root() {
+            return helperUtils.getPathSafe(path.join(__dirname, `../../`), true);
+        },
+
+        get static() {
+            let staticPath = `${this.root}/static/`;
+            return helperUtils.getPathSafe(staticPath, true);
+        },
+
+        get images() {
+            let path = `${this.static}/images/`;
+            return helperUtils.getPathSafe(path, true);
         },
     },
 };

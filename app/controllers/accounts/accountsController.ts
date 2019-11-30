@@ -54,12 +54,23 @@ function getAllAccounts(req: Request, res: Response) {
 async function addNewAccount(req: Request, res: Response) {
     const { username, password, name, email } = req.body;
 
-    const resData: ApiResponseData = await AccountModel.addNewAccount({
-        username: username,
-        password: password,
-        name: name,
-        email: email,
-    } as Account);
+    let files = (req as any).files;
+    console.log(files);
+
+    let profilePictureBuffer = undefined;
+    if (files && files.length > 0) {
+        profilePictureBuffer = files[0].buffer;
+    }
+
+    const resData: ApiResponseData = await AccountModel.addNewAccount(
+        {
+            username: username,
+            password: password,
+            name: name,
+            email: email,
+        } as Account,
+        profilePictureBuffer
+    );
 
     res.json(resData);
 }
